@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
 
-// Strip MongoDB operators like $gt / $ne out of query filters built from user input.
-// This blocks "NoSQL injection", e.g. someone sending { "phone": { "$ne": null } }.
-mongoose.set('sanitizeFilter', true);
-// Ignore unknown fields in queries instead of silently matching everything.
+// Ignore unknown fields in query filters instead of passing them to MongoDB.
 mongoose.set('strictQuery', true);
+// Note on NoSQL injection: every value that reaches a query is first checked by
+// express-validator in the routes (e.g. status must be one of a fixed list) or cast
+// with String(), so a request body like { "phone": { "$ne": null } } can't become a query operator.
 
 async function connectDB(uri) {
   await mongoose.connect(uri);
