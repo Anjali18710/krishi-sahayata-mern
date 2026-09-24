@@ -1,0 +1,16 @@
+{
+  "name": "krishi-sahayata",
+  "version": "2.0.0",
+  "private": true,
+  "description": "MERN platform for farmers to file and track crop-insurance claims, with weather-verified claims and SMS updates",
+  "scripts": {
+    "install:all": "npm install --prefix server && npm install --prefix client",
+    "build": "npm install --prefix server && npm install --include=dev --prefix client && npm run build --prefix client",
+    "start": "npm start --prefix server",
+    "test": "npm test --prefix server"
+  },
+  "engines": {
+    "node": ">=20.19"
+  },
+  "license": "MIT"
+}
