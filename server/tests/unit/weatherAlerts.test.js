@@ -4,10 +4,7 @@ const day = (date, values) => ({ date, precipitation: 0, tempMax: 30, windGustMa
 
 describe('detectAlerts', () => {
   test('finds heavy rain, extreme heat and strong wind in the next 2 days', () => {
-    const alerts = detectAlerts([
-      day('2026-09-25', { precipitation: 80 }),
-      day('2026-09-26', { tempMax: 46, windGustMax: 70 }),
-    ]);
+    const alerts = detectAlerts([day('2026-09-25', { precipitation: 80 }), day('2026-09-26', { tempMax: 46, windGustMax: 70 })]);
     expect(alerts.map((a) => a.type)).toEqual(['heavy_rain', 'extreme_heat', 'strong_wind']);
   });
 

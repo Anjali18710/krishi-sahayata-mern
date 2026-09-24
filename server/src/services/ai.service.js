@@ -33,7 +33,12 @@ function buildClaimFacts(claim) {
     `Number of photos: ${claim.photos.length}`,
     `Weather check verdict: ${wc.verdict || 'not run'}${wc.score != null ? ` (score ${wc.score}/100)` : ''}`,
     `Weather check details: ${(wc.reasons || []).join(' ') || '(none)'}`,
-    `Officer remarks so far: ${claim.statusHistory.map((h) => h.remark).filter(Boolean).join(' | ') || '(none)'}`,
+    `Officer remarks so far: ${
+      claim.statusHistory
+        .map((h) => h.remark)
+        .filter(Boolean)
+        .join(' | ') || '(none)'
+    }`,
   ].join('\n');
 }
 
@@ -71,7 +76,11 @@ async function callGemini(facts) {
 
 async function summarizeClaim(claim) {
   if (!aiEnabled()) {
-    throw new ApiError(503, 'AI summaries are turned off. Add GROQ_API_KEY or GEMINI_API_KEY to the server .env file.', 'AI_DISABLED');
+    throw new ApiError(
+      503,
+      'AI summaries are turned off. Add GROQ_API_KEY or GEMINI_API_KEY to the server .env file.',
+      'AI_DISABLED'
+    );
   }
   const facts = buildClaimFacts(claim);
   const errors = [];

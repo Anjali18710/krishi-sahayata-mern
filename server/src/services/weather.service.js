@@ -68,7 +68,14 @@ async function getDailyHistory(latitude, longitude, startDate, endDate) {
   return cached(key, ttl, async () => {
     if (useArchive) {
       const { data } = await http.get(ARCHIVE_URL, {
-        params: { latitude: lat, longitude: lon, start_date: start, end_date: end, daily: DAILY_VARS.join(','), timezone: 'auto' },
+        params: {
+          latitude: lat,
+          longitude: lon,
+          start_date: start,
+          end_date: end,
+          daily: DAILY_VARS.join(','),
+          timezone: 'auto',
+        },
       });
       return { source: 'archive', days: toDays(data.daily) };
     }
@@ -76,7 +83,14 @@ async function getDailyHistory(latitude, longitude, startDate, endDate) {
     // Recent dates: ask the forecast API for enough past days and keep only the range we need
     const pastDays = Math.min(92, Math.ceil((Date.now() - new Date(start).getTime()) / DAY_MS) + 1);
     const { data } = await http.get(FORECAST_URL, {
-      params: { latitude: lat, longitude: lon, past_days: pastDays, forecast_days: 1, daily: DAILY_VARS.join(','), timezone: 'auto' },
+      params: {
+        latitude: lat,
+        longitude: lon,
+        past_days: pastDays,
+        forecast_days: 1,
+        daily: DAILY_VARS.join(','),
+        timezone: 'auto',
+      },
     });
     const days = toDays(data.daily).filter((d) => d.date >= start && d.date <= end);
     return { source: 'forecast', days };

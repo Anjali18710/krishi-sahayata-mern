@@ -52,7 +52,18 @@ const CROPS = {
   rabi: ['Wheat', 'Mustard', 'Gram', 'Potato'],
   zaid: ['Moong', 'Watermelon', 'Vegetables'],
 };
-const CAUSES = ['flood', 'excess_rain', 'drought', 'hailstorm', 'cyclone', 'heatwave', 'pest_attack', 'flood', 'excess_rain', 'drought'];
+const CAUSES = [
+  'flood',
+  'excess_rain',
+  'drought',
+  'hailstorm',
+  'cyclone',
+  'heatwave',
+  'pest_attack',
+  'flood',
+  'excess_rain',
+  'drought',
+];
 const BANKS = [
   ['State Bank of India', 'SBIN0001234'],
   ['Punjab National Bank', 'PUNB0123400'],
@@ -102,7 +113,13 @@ async function seed() {
   await connectDB(env.mongoUri);
 
   console.log('Clearing old data...');
-  await Promise.all([User.deleteMany({}), Claim.deleteMany({}), Notification.deleteMany({}), Otp.deleteMany({}), Counter.deleteMany({})]);
+  await Promise.all([
+    User.deleteMany({}),
+    Claim.deleteMany({}),
+    Notification.deleteMany({}),
+    Otp.deleteMany({}),
+    Counter.deleteMany({}),
+  ]);
   const db = mongoose.connection.db;
   const existing = (await db.listCollections().toArray()).map((c) => c.name);
   for (const name of ['photos.files', 'photos.chunks']) {
@@ -166,7 +183,7 @@ async function seed() {
     const [bankName, ifsc] = pick(BANKS);
     const accountNumber = String(Math.floor(between(100000000000, 999999999999)));
     const areaAcres = Number(between(0.5, 6).toFixed(1));
-    const amountClaimed = Math.round(areaAcres * between(8000, 18000) / 100) * 100;
+    const amountClaimed = Math.round((areaAcres * between(8000, 18000)) / 100) * 100;
 
     // Finished claims are spread over ~6 months; open claims are recent, and a few are "overdue"
     const finished = [STATUS.REJECTED, STATUS.DISBURSED].includes(target);

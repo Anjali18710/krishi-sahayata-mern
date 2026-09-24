@@ -51,11 +51,9 @@ function assertTransition(claim, to, user, { remark, amountApproved } = {}) {
     throw ApiError.badRequest(`Unknown status "${to}"`, 'INVALID_STATUS');
   }
   if (!canTransition(claim.status, to)) {
-    throw ApiError.badRequest(
-      `A claim that is "${claim.status}" cannot be moved to "${to}"`,
-      'INVALID_TRANSITION',
-      { allowed: TRANSITIONS[claim.status] }
-    );
+    throw ApiError.badRequest(`A claim that is "${claim.status}" cannot be moved to "${to}"`, 'INVALID_TRANSITION', {
+      allowed: TRANSITIONS[claim.status],
+    });
   }
   if (!rolesAllowedFor(to).includes(user.role)) {
     throw ApiError.forbidden(`Only ${rolesAllowedFor(to).join(' or ')} can move a claim to "${to}"`);

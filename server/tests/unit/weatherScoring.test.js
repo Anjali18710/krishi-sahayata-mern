@@ -36,35 +36,81 @@ describe('requiredRange', () => {
 
 describe('scoreClaimWeather', () => {
   test('flood with very heavy rain is consistent', () => {
-    const result = scoreClaimWeather('flood', days(9, (i) => ({ precipitation: i === 4 ? 130 : 3 })));
+    const result = scoreClaimWeather(
+      'flood',
+      days(9, (i) => ({ precipitation: i === 4 ? 130 : 3 }))
+    );
     expect(result.verdict).toBe('consistent');
     expect(result.score).toBe(95);
     expect(result.metrics.maxDailyRainMm).toBe(130);
   });
 
   test('flood claim with no rain is inconsistent', () => {
-    const result = scoreClaimWeather('flood', days(9, () => ({ precipitation: 0 })));
+    const result = scoreClaimWeather(
+      'flood',
+      days(9, () => ({ precipitation: 0 }))
+    );
     expect(result.verdict).toBe('inconsistent');
   });
 
   test('drought with almost no rain is consistent, a wet month is inconsistent', () => {
-    expect(scoreClaimWeather('drought', days(31, (i) => ({ precipitation: i % 10 === 0 ? 4 : 0 }))).verdict).toBe('consistent');
-    expect(scoreClaimWeather('drought', days(31, () => ({ precipitation: 10 }))).verdict).toBe('inconsistent');
+    expect(
+      scoreClaimWeather(
+        'drought',
+        days(31, (i) => ({ precipitation: i % 10 === 0 ? 4 : 0 }))
+      ).verdict
+    ).toBe('consistent');
+    expect(
+      scoreClaimWeather(
+        'drought',
+        days(31, () => ({ precipitation: 10 }))
+      ).verdict
+    ).toBe('inconsistent');
   });
 
   test('hailstorm uses thunderstorm codes and gusts', () => {
-    expect(scoreClaimWeather('hailstorm', days(4, (i) => ({ precipitation: 12, weatherCode: i === 2 ? 95 : 3, windGustMax: 45 }))).score).toBe(80);
-    expect(scoreClaimWeather('hailstorm', days(4, () => ({ precipitation: 0, weatherCode: 1, windGustMax: 10 }))).verdict).toBe('inconsistent');
+    expect(
+      scoreClaimWeather(
+        'hailstorm',
+        days(4, (i) => ({ precipitation: 12, weatherCode: i === 2 ? 95 : 3, windGustMax: 45 }))
+      ).score
+    ).toBe(80);
+    expect(
+      scoreClaimWeather(
+        'hailstorm',
+        days(4, () => ({ precipitation: 0, weatherCode: 1, windGustMax: 10 }))
+      ).verdict
+    ).toBe('inconsistent');
   });
 
   test('cyclone uses wind gust thresholds', () => {
-    expect(scoreClaimWeather('cyclone', days(5, () => ({ precipitation: 20, windGustMax: 95 }))).score).toBe(90);
+    expect(
+      scoreClaimWeather(
+        'cyclone',
+        days(5, () => ({ precipitation: 20, windGustMax: 95 }))
+      ).score
+    ).toBe(90);
   });
 
   test('heatwave and frost use temperature', () => {
-    expect(scoreClaimWeather('heatwave', days(8, () => ({ tempMax: 46 }))).verdict).toBe('consistent');
-    expect(scoreClaimWeather('heatwave', days(8, () => ({ tempMax: 33 }))).verdict).toBe('inconsistent');
-    expect(scoreClaimWeather('frost', days(5, () => ({ tempMin: 1 }))).score).toBe(75);
+    expect(
+      scoreClaimWeather(
+        'heatwave',
+        days(8, () => ({ tempMax: 46 }))
+      ).verdict
+    ).toBe('consistent');
+    expect(
+      scoreClaimWeather(
+        'heatwave',
+        days(8, () => ({ tempMax: 33 }))
+      ).verdict
+    ).toBe('inconsistent');
+    expect(
+      scoreClaimWeather(
+        'frost',
+        days(5, () => ({ tempMin: 1 }))
+      ).score
+    ).toBe(75);
   });
 
   test('causes like pest attack are not applicable', () => {
@@ -72,7 +118,10 @@ describe('scoreClaimWeather', () => {
   });
 
   test('missing data gives inconclusive instead of a guess', () => {
-    const result = scoreClaimWeather('flood', days(9, () => ({})));
+    const result = scoreClaimWeather(
+      'flood',
+      days(9, () => ({}))
+    );
     expect(result.verdict).toBe('inconclusive');
     expect(result.score).toBeNull();
   });

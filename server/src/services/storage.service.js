@@ -23,7 +23,10 @@ function saveFile(buffer, filename, contentType, metadata = {}) {
 }
 
 async function findFile(fileId) {
-  const [file] = await getBucket().find({ _id: new mongoose.Types.ObjectId(fileId) }).limit(1).toArray();
+  const [file] = await getBucket()
+    .find({ _id: new mongoose.Types.ObjectId(fileId) })
+    .limit(1)
+    .toArray();
   return file || null;
 }
 

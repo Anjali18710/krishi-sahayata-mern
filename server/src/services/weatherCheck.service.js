@@ -15,12 +15,7 @@ async function runWeatherCheck(claimId) {
 
   try {
     const range = requiredRange(claim.causeOfLoss, claim.lossDate);
-    const { source, days } = await getDailyHistory(
-      claim.location.latitude,
-      claim.location.longitude,
-      range.start,
-      range.end
-    );
+    const { source, days } = await getDailyHistory(claim.location.latitude, claim.location.longitude, range.start, range.end);
     const result = scoreClaimWeather(claim.causeOfLoss, days);
     claim.weatherCheck = {
       status: 'done',

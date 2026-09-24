@@ -9,7 +9,14 @@ beforeAll(db.connect);
 afterEach(db.clear);
 afterAll(db.close);
 
-const register = { phone: '98765 43210', purpose: 'register', name: 'Ramesh Sahu', state: 'Odisha', district: 'Puri', language: 'hi' };
+const register = {
+  phone: '98765 43210',
+  purpose: 'register',
+  name: 'Ramesh Sahu',
+  state: 'Odisha',
+  district: 'Puri',
+  language: 'hi',
+};
 
 async function requestOtp(body) {
   const res = await request(app).post('/api/auth/otp/request').send(body);
@@ -23,7 +30,9 @@ describe('farmer OTP registration and login', () => {
     // In tests Twilio is not configured, so the API returns the OTP (devOtp)
     expect(otpRes.body.devOtp).toMatch(/^\d{6}$/);
 
-    const res = await request(app).post('/api/auth/otp/verify').send({ ...register, code: otpRes.body.devOtp });
+    const res = await request(app)
+      .post('/api/auth/otp/verify')
+      .send({ ...register, code: otpRes.body.devOtp });
     expect(res.status).toBe(201);
     expect(res.body.token).toBeDefined();
     expect(res.body.user).toMatchObject({ name: 'Ramesh Sahu', phone: '+919876543210', role: 'farmer', language: 'hi' });
@@ -37,7 +46,9 @@ describe('farmer OTP registration and login', () => {
 
   test('wrong OTP is rejected and counted', async () => {
     await requestOtp({ phone: register.phone, purpose: 'register' });
-    const res = await request(app).post('/api/auth/otp/verify').send({ ...register, code: '000000' });
+    const res = await request(app)
+      .post('/api/auth/otp/verify')
+      .send({ ...register, code: '000000' });
     expect(res.status).toBe(400);
     expect(res.body.code).toBe('OTP_INVALID');
     expect((await Otp.findOne({ phone: '+919876543210' })).attempts).toBe(1);
@@ -45,8 +56,13 @@ describe('farmer OTP registration and login', () => {
 
   test('an OTP can be used only once', async () => {
     const { body } = await requestOtp({ phone: register.phone, purpose: 'register' });
-    await request(app).post('/api/auth/otp/verify').send({ ...register, code: body.devOtp }).expect(201);
-    const again = await request(app).post('/api/auth/otp/verify').send({ ...register, code: body.devOtp });
+    await request(app)
+      .post('/api/auth/otp/verify')
+      .send({ ...register, code: body.devOtp })
+      .expect(201);
+    const again = await request(app)
+      .post('/api/auth/otp/verify')
+      .send({ ...register, code: body.devOtp });
     expect(again.body.code).toBe('OTP_EXPIRED');
   });
 

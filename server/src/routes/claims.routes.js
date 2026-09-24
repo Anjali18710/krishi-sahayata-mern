@@ -46,7 +46,10 @@ const createRules = [
     .toUpperCase()
     .matches(/^[A-Z]{4}0[A-Z0-9]{6}$/)
     .withMessage('Enter a valid 11-character IFSC code, e.g. SBIN0001234'),
-  body('accountNumber').trim().matches(/^\d{9,18}$/).withMessage('Account number must be 9 to 18 digits'),
+  body('accountNumber')
+    .trim()
+    .matches(/^\d{9,18}$/)
+    .withMessage('Account number must be 9 to 18 digits'),
 ];
 
 // Order matters: read the multipart form -> validate the fields -> save photos -> create the claim

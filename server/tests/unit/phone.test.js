@@ -12,12 +12,9 @@ describe('normalizeIndianPhone', () => {
     expect(normalizeIndianPhone(input)).toBe(expected);
   });
 
-  test.each([['12345'], ['5876543210'], ['98765432101234'], [''], [null], [{ $ne: null }]])(
-    'rejects %p',
-    (input) => {
-      expect(normalizeIndianPhone(input)).toBeNull();
-    }
-  );
+  test.each([['12345'], ['5876543210'], ['98765432101234'], [''], [null], [{ $ne: null }]])('rejects %p', (input) => {
+    expect(normalizeIndianPhone(input)).toBeNull();
+  });
 });
 
 test('maskPhone hides all but the last 4 digits', () => {

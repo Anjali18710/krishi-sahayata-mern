@@ -31,11 +31,7 @@ async function getSummary(user) {
         },
       },
     ]),
-    Claim.aggregate([
-      { $match: match },
-      { $group: { _id: '$causeOfLoss', count: { $sum: 1 } } },
-      { $sort: { count: -1 } },
-    ]),
+    Claim.aggregate([{ $match: match }, { $group: { _id: '$causeOfLoss', count: { $sum: 1 } } }, { $sort: { count: -1 } }]),
     Claim.aggregate([
       { $match: match },
       {
@@ -53,10 +49,7 @@ async function getSummary(user) {
       { $group: { _id: { $dateToString: { format: '%Y-%m', date: '$submittedAt' } }, count: { $sum: 1 } } },
       { $sort: { _id: 1 } },
     ]),
-    Claim.aggregate([
-      { $match: match },
-      { $group: { _id: '$weatherCheck.verdict', count: { $sum: 1 } } },
-    ]),
+    Claim.aggregate([{ $match: match }, { $group: { _id: '$weatherCheck.verdict', count: { $sum: 1 } } }]),
     // Average days from submission to decision (approved or rejected)
     Claim.aggregate([
       { $match: { ...match, decidedAt: { $ne: null } } },

@@ -10,10 +10,8 @@ const RESEND_COOLDOWN_SECONDS = 30;
 const MAX_VERIFY_ATTEMPTS = 5;
 
 const MESSAGES = {
-  en: (code) =>
-    `Your Krishi Sahayata OTP is ${code}. It is valid for ${OTP_TTL_MINUTES} minutes. Do not share it with anyone.`,
-  hi: (code) =>
-    `आपका कृषि सहायता OTP ${code} है। यह ${OTP_TTL_MINUTES} मिनट तक मान्य है। इसे किसी के साथ साझा न करें।`,
+  en: (code) => `Your Krishi Sahayata OTP is ${code}. It is valid for ${OTP_TTL_MINUTES} minutes. Do not share it with anyone.`,
+  hi: (code) => `आपका कृषि सहायता OTP ${code} है। यह ${OTP_TTL_MINUTES} मिनट तक मान्य है। इसे किसी के साथ साझा न करें।`,
 };
 
 /**

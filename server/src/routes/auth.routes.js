@@ -27,7 +27,9 @@ router.post(
   loginLimiter,
   [
     body('phone').notEmpty().withMessage('Phone number is required'),
-    body('code').matches(/^\d{6}$/).withMessage('OTP must be 6 digits'),
+    body('code')
+      .matches(/^\d{6}$/)
+      .withMessage('OTP must be 6 digits'),
     body('purpose').isIn(['login', 'register']),
     // Registration fields are only required when registering
     body('name').if(body('purpose').equals('register')).trim().notEmpty().withMessage('Name is required').isLength({ max: 80 }),
@@ -43,10 +45,7 @@ router.post(
 router.post(
   '/staff/login',
   loginLimiter,
-  [
-    body('email').isEmail().withMessage('Enter a valid email'),
-    body('password').notEmpty().withMessage('Password is required'),
-  ],
+  [body('email').isEmail().withMessage('Enter a valid email'), body('password').notEmpty().withMessage('Password is required')],
   validate,
   ctrl.staffLogin
 );

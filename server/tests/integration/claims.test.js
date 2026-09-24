@@ -78,7 +78,9 @@ describe('filing a claim', () => {
 
   test('rejects files that are not really images', async () => {
     const farmer = await createFarmer();
-    const res = await fileClaim(farmer, claimFields(), [{ buffer: Buffer.from('hello world, not an image'), name: 'x.png', type: 'image/png' }]);
+    const res = await fileClaim(farmer, claimFields(), [
+      { buffer: Buffer.from('hello world, not an image'), name: 'x.png', type: 'image/png' },
+    ]);
     expect(res.status).toBe(400);
     expect(res.body.code).toBe('INVALID_FILE_TYPE');
   });
@@ -126,7 +128,13 @@ describe('status changes', () => {
     expect((await patch(admin, { to: 'disbursed' })).body.claim.status).toBe('disbursed');
 
     const claim = await Claim.findById(claimId);
-    expect(claim.statusHistory.map((h) => h.to)).toEqual(['submitted', 'under_review', 'field_verification', 'approved', 'disbursed']);
+    expect(claim.statusHistory.map((h) => h.to)).toEqual([
+      'submitted',
+      'under_review',
+      'field_verification',
+      'approved',
+      'disbursed',
+    ]);
 
     const sms = await Notification.find({ claim: claimId }).sort({ createdAt: 1 });
     expect(sms).toHaveLength(5);
@@ -187,7 +195,9 @@ describe('public tracking', () => {
     const { body } = await fileClaim(farmer);
     const last4 = farmer.phone.slice(-4);
 
-    const ok = await request(app).get(`/api/public/track?claimNumber=${body.claim.claimNumber.toLowerCase()}&phoneLast4=${last4}`);
+    const ok = await request(app).get(
+      `/api/public/track?claimNumber=${body.claim.claimNumber.toLowerCase()}&phoneLast4=${last4}`
+    );
     expect(ok.status).toBe(200);
     expect(ok.body.status).toBe('submitted');
     expect(ok.body.farmerPhone).toBeUndefined();

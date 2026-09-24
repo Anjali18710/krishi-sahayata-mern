@@ -24,7 +24,10 @@ test('summary counts claims, amounts and approval rate', async () => {
   await fileClaim(farmer, { amountClaimed: 5000 });
 
   const tenDaysAgo = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000);
-  await Claim.updateOne({ _id: a._id }, { status: 'disbursed', amountApproved: 8000, decidedAt: new Date(), submittedAt: tenDaysAgo });
+  await Claim.updateOne(
+    { _id: a._id },
+    { status: 'disbursed', amountApproved: 8000, decidedAt: new Date(), submittedAt: tenDaysAgo }
+  );
   await Claim.updateOne({ _id: b._id }, { status: 'rejected', decidedAt: new Date(), submittedAt: tenDaysAgo });
 
   const res = await request(app).get('/api/analytics/summary').set(authHeader(admin));
@@ -38,7 +41,12 @@ test('summary counts claims, amounts and approval rate', async () => {
     approvalRate: 50,
     avgDaysToDecision: 10,
   });
-  expect(res.body.byCause).toEqual(expect.arrayContaining([{ cause: 'flood', count: 2 }, { cause: 'drought', count: 1 }]));
+  expect(res.body.byCause).toEqual(
+    expect.arrayContaining([
+      { cause: 'flood', count: 2 },
+      { cause: 'drought', count: 1 },
+    ])
+  );
   expect(res.body.monthly).toHaveLength(12);
   expect(res.body.monthly.reduce((sum, m) => sum + m.count, 0)).toBe(3);
 });

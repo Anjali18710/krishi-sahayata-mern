@@ -264,9 +264,7 @@ async function trackPublic(req, res) {
     causeOfLoss: claim.causeOfLoss,
     submittedAt: claim.submittedAt,
     amountApproved: claim.amountApproved,
-    timeline: claim.statusHistory
-      .filter((h) => h.from !== h.to)
-      .map((h) => ({ status: h.to, at: h.at })),
+    timeline: claim.statusHistory.filter((h) => h.from !== h.to).map((h) => ({ status: h.to, at: h.at })),
   });
 }
 

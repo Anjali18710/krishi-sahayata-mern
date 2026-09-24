@@ -142,7 +142,9 @@ const RULES = {
     return {
       score,
       reasons: [
-        thunderstorm ? 'A thunderstorm was recorded around the date of loss.' : 'No thunderstorm was recorded around the date of loss.',
+        thunderstorm
+          ? 'A thunderstorm was recorded around the date of loss.'
+          : 'No thunderstorm was recorded around the date of loss.',
         `Strongest wind gust was ${r1(gust)} km/h; highest daily rainfall was ${r1(max1d)} mm.`,
         'Note: weather models do not report hail directly for India, so thunderstorms and gusts are used as signs of hail.',
       ],

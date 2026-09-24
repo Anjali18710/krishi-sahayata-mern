@@ -12,7 +12,9 @@ router.get(
   publicLimiter,
   [
     query('claimNumber').trim().notEmpty().withMessage('Enter your claim number').isLength({ max: 20 }),
-    query('phoneLast4').matches(/^\d{4}$/).withMessage('Enter the last 4 digits of your phone number'),
+    query('phoneLast4')
+      .matches(/^\d{4}$/)
+      .withMessage('Enter the last 4 digits of your phone number'),
   ],
   validate,
   ctrl.trackPublic

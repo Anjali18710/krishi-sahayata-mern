@@ -19,7 +19,8 @@ const DAYS_AHEAD = 2;
 function detectAlerts(days) {
   const alerts = [];
   for (const day of days.slice(0, DAYS_AHEAD)) {
-    if (day.precipitation >= THRESHOLDS.heavyRainMm) alerts.push({ type: 'heavy_rain', date: day.date, value: day.precipitation });
+    if (day.precipitation >= THRESHOLDS.heavyRainMm)
+      alerts.push({ type: 'heavy_rain', date: day.date, value: day.precipitation });
     if (day.tempMax >= THRESHOLDS.extremeHeatC) alerts.push({ type: 'extreme_heat', date: day.date, value: day.tempMax });
     if (day.windGustMax >= THRESHOLDS.strongWindKmh) alerts.push({ type: 'strong_wind', date: day.date, value: day.windGustMax });
   }
@@ -36,14 +37,20 @@ function formatDate(isoDate, language) {
 
 const LINES = {
   en: {
-    heavy_rain: (a, d) => `Heavy rain (about ${Math.round(a.value)} mm) expected on ${d}. Move harvested crop to a safe place and clear field drainage.`,
-    extreme_heat: (a, d) => `Extreme heat (up to ${Math.round(a.value)}°C) expected on ${d}. Irrigate if needed and avoid field work in the afternoon.`,
-    strong_wind: (a, d) => `Strong winds (gusts up to ${Math.round(a.value)} km/h) expected on ${d}. Secure sheds and support tall crops.`,
+    heavy_rain: (a, d) =>
+      `Heavy rain (about ${Math.round(a.value)} mm) expected on ${d}. Move harvested crop to a safe place and clear field drainage.`,
+    extreme_heat: (a, d) =>
+      `Extreme heat (up to ${Math.round(a.value)}°C) expected on ${d}. Irrigate if needed and avoid field work in the afternoon.`,
+    strong_wind: (a, d) =>
+      `Strong winds (gusts up to ${Math.round(a.value)} km/h) expected on ${d}. Secure sheds and support tall crops.`,
   },
   hi: {
-    heavy_rain: (a, d) => `${d} को भारी बारिश (लगभग ${Math.round(a.value)} मिमी) की संभावना है। कटी फसल सुरक्षित जगह रखें और खेत से पानी निकलने का रास्ता साफ़ रखें।`,
-    extreme_heat: (a, d) => `${d} को बहुत तेज़ गर्मी (${Math.round(a.value)}°C तक) की संभावना है। ज़रूरत हो तो सिंचाई करें और दोपहर में खेत का काम न करें।`,
-    strong_wind: (a, d) => `${d} को तेज़ हवाएं (${Math.round(a.value)} किमी/घंटा तक) चलने की संभावना है। शेड मज़बूत करें और ऊँची फसलों को सहारा दें।`,
+    heavy_rain: (a, d) =>
+      `${d} को भारी बारिश (लगभग ${Math.round(a.value)} मिमी) की संभावना है। कटी फसल सुरक्षित जगह रखें और खेत से पानी निकलने का रास्ता साफ़ रखें।`,
+    extreme_heat: (a, d) =>
+      `${d} को बहुत तेज़ गर्मी (${Math.round(a.value)}°C तक) की संभावना है। ज़रूरत हो तो सिंचाई करें और दोपहर में खेत का काम न करें।`,
+    strong_wind: (a, d) =>
+      `${d} को तेज़ हवाएं (${Math.round(a.value)} किमी/घंटा तक) चलने की संभावना है। शेड मज़बूत करें और ऊँची फसलों को सहारा दें।`,
   },
 };
 
