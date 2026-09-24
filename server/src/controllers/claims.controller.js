@@ -10,6 +10,7 @@ const { STATUS, OPEN_STATUSES, applyTransition } = require('../services/claimWor
 const { notifyStatusChange } = require('../services/claimNotifications');
 const { pickOfficerForDistrict } = require('../services/assignment.service');
 const { deleteFile } = require('../services/storage.service');
+const { runWeatherCheck, runWeatherCheckInBackground } = require('../services/weatherCheck.service');
 
 // ---------- helpers ----------
 
@@ -100,6 +101,7 @@ async function createClaim(req, res) {
   }
 
   await notifyStatusChange(claim, farmer);
+  if (!env.isTest) runWeatherCheckInBackground(claim._id);
 
   res.status(201).json({ claim });
 }
@@ -221,6 +223,13 @@ async function assignOfficer(req, res) {
   res.json({ claim });
 }
 
+// POST /api/claims/:id/weather-check   (officer/admin) - run or re-run the weather check now
+async function rerunWeatherCheck(req, res) {
+  const claim = await findClaimForUser(req.params.id, req.user);
+  const updated = await runWeatherCheck(claim._id);
+  res.json({ weatherCheck: updated.weatherCheck });
+}
+
 // GET /api/public/track?claimNumber=KS-2026-000001&phoneLast4=3210   (no login)
 // Needs the last 4 digits of the farmer's phone so strangers can't look up claims by number alone.
 async function trackPublic(req, res) {
@@ -248,6 +257,7 @@ module.exports = {
   updateStatus,
   bulkUpdateStatus,
   assignOfficer,
+  rerunWeatherCheck,
   trackPublic,
   findClaimForUser,
 };

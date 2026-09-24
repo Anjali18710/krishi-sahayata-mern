@@ -36,6 +36,7 @@ app.use('/api/users', require('./routes/users.routes'));
 app.use('/api/claims', require('./routes/claims.routes'));
 app.use('/api/public', require('./routes/public.routes'));
 app.use('/api/files', require('./routes/files.routes'));
+app.use('/api/weather', require('./routes/weather.routes'));
 
 // If the React app has been built (client/dist exists), serve it from the same server.
 // This lets the whole project run as a single service in production.

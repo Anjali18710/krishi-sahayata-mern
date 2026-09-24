@@ -76,6 +76,18 @@ const claimSchema = new mongoose.Schema(
     statusHistory: { type: [statusHistorySchema], default: [] },
     assignedOfficer: { type: ObjectId, ref: 'User', default: null },
 
+    // Result of comparing the reported cause with real weather data (see services/weatherScoring.js)
+    weatherCheck: {
+      status: { type: String, enum: ['pending', 'done', 'failed'], default: 'pending' },
+      score: { type: Number, min: 0, max: 100, default: null },
+      verdict: { type: String, enum: ['consistent', 'inconclusive', 'inconsistent', 'not_applicable', null], default: null },
+      reasons: { type: [String], default: [] },
+      metrics: { type: mongoose.Schema.Types.Mixed, default: {} },
+      source: { type: String, enum: ['archive', 'forecast', null], default: null },
+      error: String,
+      checkedAt: Date,
+    },
+
     submittedAt: { type: Date, default: Date.now },
     decidedAt: Date, // when approved or rejected
     disbursedAt: Date,
@@ -91,6 +103,7 @@ claimSchema.index({ farmer: 1, createdAt: -1 });
 claimSchema.index({ assignedOfficer: 1, status: 1 });
 claimSchema.index({ 'location.district': 1, status: 1 });
 claimSchema.index({ status: 1, statusChangedAt: 1 });
+claimSchema.index({ 'weatherCheck.verdict': 1 });
 
 // "Overdue" = still open and no status change for more than SLA_DAYS days.
 // A virtual is computed on the fly and not stored in the database.

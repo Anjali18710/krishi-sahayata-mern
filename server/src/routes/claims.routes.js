@@ -106,4 +106,6 @@ router.patch(
   ctrl.assignOfficer
 );
 
+router.post('/:id/weather-check', requireRole(...STAFF), [param('id').isMongoId()], validate, ctrl.rerunWeatherCheck);
+
 module.exports = router;
