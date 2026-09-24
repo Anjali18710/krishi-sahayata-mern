@@ -156,7 +156,15 @@ cd server
 npm test
 ```
 
-73 tests: unit tests for the claim state machine, weather scoring, weather alerts and phone parsing; integration tests (Supertest) for OTP login, permissions, claim filing, photo upload security, status changes with SMS, bulk updates, filters, public tracking, the weather check and analytics. Tests use an in-memory MongoDB (downloaded automatically on the first run) and mock Open-Meteo, so they don't need internet or Twilio.
+73 tests: unit tests for the claim state machine, weather scoring, weather alerts and phone parsing; integration tests (Supertest) for OTP login, permissions, claim filing, photo upload security, status changes with SMS, bulk updates, filters, public tracking, the weather check and analytics. Tests use an in-memory MongoDB (downloaded automatically on the first run) and mock Open-Meteo, so they don't need Twilio or the weather API.
+
+If the in-memory MongoDB can't be downloaded on your network, run the tests against your Atlas cluster instead. Each test file uses its own temporary `ks-test-...` database, so your real data is not touched:
+
+```bash
+# Windows (cmd)
+set MONGO_URI_TEST=<your Atlas connection string>
+npm test
+```
 
 ## API overview
 

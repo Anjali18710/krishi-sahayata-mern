@@ -1,7 +1,8 @@
-// Gives every test file its own empty database.
+// Gives every test file its own empty database (named ks-test-...), deleted afterwards.
 // By default it starts a temporary in-memory MongoDB (mongodb-memory-server; the first run
 // downloads a MongoDB binary, so it can take a minute). Set MONGO_URI_TEST to use your own
-// MongoDB server instead, e.g. MONGO_URI_TEST=mongodb://127.0.0.1:27017
+// MongoDB instead, e.g. your Atlas connection string. Your real data is never touched,
+// because the tests always use their own separate database.
 process.env.NODE_ENV = 'test';
 const mongoose = require('mongoose');
 
@@ -37,9 +38,18 @@ async function clear() {
 }
 
 async function close() {
-  await mongoose.connection.dropDatabase();
-  await mongoose.disconnect();
-  if (memoryServer) await memoryServer.stop();
+  try {
+    await mongoose.connection.dropDatabase();
+  } catch {
+    // Atlas users with the "read and write" role may not be allowed to drop a whole database.
+    // Dropping every collection has the same effect: MongoDB removes a database once it's empty.
+    const collections = await mongoose.connection.db.collections();
+    await Promise.all(collections.map((c) => c.drop().catch(() => {})));
+  } finally {
+    // Always close the connection, otherwise Jest keeps waiting and never exits
+    await mongoose.disconnect();
+    if (memoryServer) await memoryServer.stop();
+  }
 }
 
 module.exports = { connect, clear, close };
