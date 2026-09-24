@@ -107,5 +107,6 @@ router.patch(
 );
 
 router.post('/:id/weather-check', requireRole(...STAFF), [param('id').isMongoId()], validate, ctrl.rerunWeatherCheck);
+router.post('/:id/ai-summary', requireRole(...STAFF), [param('id').isMongoId()], validate, ctrl.generateAiSummary);
 
 module.exports = router;

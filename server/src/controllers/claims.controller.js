@@ -11,6 +11,7 @@ const { notifyStatusChange } = require('../services/claimNotifications');
 const { pickOfficerForDistrict } = require('../services/assignment.service');
 const { deleteFile } = require('../services/storage.service');
 const { runWeatherCheck, runWeatherCheckInBackground } = require('../services/weatherCheck.service');
+const { summarizeClaim } = require('../services/ai.service');
 
 // ---------- helpers ----------
 
@@ -240,6 +241,15 @@ async function rerunWeatherCheck(req, res) {
   res.json({ weatherCheck: updated.weatherCheck });
 }
 
+// POST /api/claims/:id/ai-summary   (officer/admin)
+async function generateAiSummary(req, res) {
+  const claim = await findClaimForUser(req.params.id, req.user);
+  const summary = await summarizeClaim(claim);
+  claim.aiSummary = { ...summary, generatedAt: new Date() };
+  await claim.save();
+  res.json({ aiSummary: claim.aiSummary });
+}
+
 // GET /api/public/track?claimNumber=KS-2026-000001&phoneLast4=3210   (no login)
 // Needs the last 4 digits of the farmer's phone so strangers can't look up claims by number alone.
 async function trackPublic(req, res) {
@@ -268,6 +278,7 @@ module.exports = {
   bulkUpdateStatus,
   assignOfficer,
   rerunWeatherCheck,
+  generateAiSummary,
   trackPublic,
   findClaimForUser,
 };

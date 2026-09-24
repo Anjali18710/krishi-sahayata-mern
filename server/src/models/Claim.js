@@ -88,6 +88,14 @@ const claimSchema = new mongoose.Schema(
       checkedAt: Date,
     },
 
+    // Optional AI-written summary for officers (see services/ai.service.js)
+    aiSummary: {
+      text: String,
+      provider: String,
+      model: String,
+      generatedAt: Date,
+    },
+
     submittedAt: { type: Date, default: Date.now },
     decidedAt: Date, // when approved or rejected
     disbursedAt: Date,

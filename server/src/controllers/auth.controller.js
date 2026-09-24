@@ -4,6 +4,7 @@ const env = require('../config/env');
 const { normalizeIndianPhone } = require('../utils/phone');
 const { issueOtp, verifyOtp, OTP_TTL_MINUTES } = require('../services/otp.service');
 const { signToken } = require('../middleware/auth');
+const { aiEnabled } = require('../services/ai.service');
 const { ROLES } = require('../constants');
 
 function parsePhone(raw) {
@@ -95,7 +96,7 @@ async function updateMe(req, res) {
 
 // GET /api/auth/config - tells the frontend whether demo mode is on
 function publicConfig(req, res) {
-  res.json({ demoMode: env.demoMode, smsEnabled: env.smsEnabled });
+  res.json({ demoMode: env.demoMode, smsEnabled: env.smsEnabled, aiEnabled: aiEnabled() });
 }
 
 module.exports = { requestOtp, verifyOtpAndLogin, staffLogin, me, updateMe, publicConfig };
