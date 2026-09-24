@@ -2,9 +2,11 @@
 const env = require('./config/env');
 const { connectDB } = require('./config/db');
 const app = require('./app');
+const { scheduleWeatherAlerts } = require('./jobs/weatherAlerts');
 
 async function start() {
   await connectDB(env.mongoUri);
+  scheduleWeatherAlerts();
 
   app.listen(env.port, () => {
     console.log(`Krishi Sahayata API running on http://localhost:${env.port}`);

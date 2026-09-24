@@ -1,9 +1,11 @@
 const express = require('express');
 const { query } = require('express-validator');
 const validate = require('../middleware/validate');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requireRole } = require('../middleware/auth');
 const ApiError = require('../utils/ApiError');
 const { getForecast, searchPlaces } = require('../services/weather.service');
+const { runWeatherAlerts } = require('../jobs/weatherAlerts');
+const { ROLES } = require('../constants');
 
 const router = express.Router();
 router.use(requireAuth);
@@ -42,5 +44,10 @@ router.get(
     res.json({ places });
   }
 );
+
+// POST /api/weather/alerts/run  (admin) - run the daily weather-alert job right now
+router.post('/alerts/run', requireRole(ROLES.ADMIN), async (req, res) => {
+  res.json(await runWeatherAlerts());
+});
 
 module.exports = router;

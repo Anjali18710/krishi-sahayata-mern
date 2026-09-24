@@ -100,6 +100,16 @@ async function createClaim(req, res) {
     throw err;
   }
 
+  // Remember the farm location on the farmer's profile for weather forecasts and alerts
+  if (farmer.farmLocation?.latitude == null) {
+    farmer.farmLocation = {
+      latitude: b.latitude,
+      longitude: b.longitude,
+      label: [b.village, b.district, b.state].filter(Boolean).join(', '),
+    };
+    await farmer.save();
+  }
+
   await notifyStatusChange(claim, farmer);
   if (!env.isTest) runWeatherCheckInBackground(claim._id);
 
