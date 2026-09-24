@@ -188,7 +188,3 @@ npm test
 ## History
 
 Version 1 was a Node.js + Express prototype that read claims from a JSON file and checked weather for a fixed date. Version 2 is a full rewrite as a MERN application.
-
-## License
-
-MIT
