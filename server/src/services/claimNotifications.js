@@ -39,7 +39,7 @@ function buildStatusMessage(claim, language = 'en', remark) {
   return templates[claim.status](claim, remark);
 }
 
-/** Sends the SMS for the claim's current status. `farmer` needs phone, language and _id. */
+/** Sends the SMS for the claim's current status. `farmer` needs language and isDemo. */
 async function notifyStatusChange(claim, farmer, remark) {
   return sendSms({
     to: claim.farmerPhone,
@@ -47,6 +47,7 @@ async function notifyStatusChange(claim, farmer, remark) {
     type: 'status_update',
     userId: claim.farmer,
     claimId: claim._id,
+    simulate: Boolean(farmer?.isDemo),
   });
 }
 

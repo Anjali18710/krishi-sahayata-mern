@@ -34,8 +34,9 @@ function isPermanentFailure(err) {
  * @param {string} [opts.userId]
  * @param {string} [opts.claimId]
  * @param {string} [opts.logBody] text saved in the database instead of body (used to hide OTP codes)
+ * @param {boolean} [opts.simulate] only log the message, never send it (demo accounts / demo mode)
  */
-async function sendSms({ to, body, type, userId, claimId, logBody }) {
+async function sendSms({ to, body, type, userId, claimId, logBody, simulate = false }) {
   const notification = await Notification.create({
     to,
     body: logBody || body,
@@ -44,8 +45,9 @@ async function sendSms({ to, body, type, userId, claimId, logBody }) {
     claim: claimId,
   });
 
-  if (!env.smsEnabled) {
-    if (!env.isTest) console.log(`\n[SMS - Twilio not configured] To ${to}:\n${body}\n`);
+  if (!env.smsEnabled || simulate) {
+    const why = simulate ? 'demo - not sent' : 'Twilio not configured';
+    if (!env.isTest) console.log(`\n[SMS - ${why}] To ${to}:\n${body}\n`);
     notification.status = 'logged';
     await notification.save();
     return notification;

@@ -61,7 +61,7 @@ async function runWeatherAlerts() {
     isActive: true,
     'farmLocation.latitude': { $ne: null },
     'farmLocation.longitude': { $ne: null },
-  }).select('name phone language farmLocation');
+  }).select('name phone language farmLocation isDemo');
 
   // Group farmers by location (rounded to ~1 km) so each location's forecast is fetched once
   const groups = new Map();
@@ -101,6 +101,7 @@ async function runWeatherAlerts() {
         body: buildAlertMessage(alerts, farmer.language),
         type: 'weather_alert',
         userId: farmer._id,
+        simulate: farmer.isDemo,
       });
       summary.alertsSent += 1;
     }

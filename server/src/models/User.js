@@ -31,6 +31,9 @@ const userSchema = new mongoose.Schema(
     },
 
     isActive: { type: Boolean, default: true },
+    // Accounts created by the seed script. Their phone numbers are made up,
+    // so the app never sends them real SMS (messages are only logged).
+    isDemo: { type: Boolean, default: false },
     lastLoginAt: Date,
   },
   { timestamps: true }

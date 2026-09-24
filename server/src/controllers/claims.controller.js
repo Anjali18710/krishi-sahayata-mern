@@ -180,7 +180,7 @@ async function getClaim(req, res) {
 async function changeStatus(claim, user, { to, remark, amountApproved }) {
   applyTransition(claim, to, user, { remark, amountApproved });
   await claim.save();
-  const farmer = await User.findById(claim.farmer).select('language');
+  const farmer = await User.findById(claim.farmer).select('language isDemo');
   await notifyStatusChange(claim, farmer, remark);
   return claim;
 }

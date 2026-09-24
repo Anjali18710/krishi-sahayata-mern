@@ -21,7 +21,7 @@ const MESSAGES = {
  * Returns { code, notification } - the code is only used by the caller
  * in demo/development mode (see auth.controller.js).
  */
-async function issueOtp(phone, purpose, language = 'en') {
+async function issueOtp(phone, purpose, language = 'en', { simulate = false } = {}) {
   const latest = await Otp.findOne({ phone, purpose }).sort({ createdAt: -1 });
   if (latest && Date.now() - latest.createdAt.getTime() < RESEND_COOLDOWN_SECONDS * 1000) {
     throw new ApiError(429, `Please wait ${RESEND_COOLDOWN_SECONDS} seconds before asking for a new OTP`, 'OTP_COOLDOWN');
@@ -43,6 +43,7 @@ async function issueOtp(phone, purpose, language = 'en') {
     body,
     type: 'otp',
     logBody: body.replace(code, '******'),
+    simulate,
   });
 
   if (notification.status === 'failed') {

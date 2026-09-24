@@ -32,11 +32,13 @@ async function requestOtp(req, res) {
   if (existing && !existing.isActive) throw ApiError.forbidden('This account has been disabled');
 
   const language = existing?.language || req.body.language || 'en';
-  const { code } = await issueOtp(phone, purpose, language);
+  // Demo mode and seeded demo accounts: the OTP is shown on screen instead of being texted
+  const simulate = env.demoMode || Boolean(existing?.isDemo);
+  const { code } = await issueOtp(phone, purpose, language, { simulate });
 
   const response = { message: 'OTP sent', expiresInMinutes: OTP_TTL_MINUTES };
-  // Only in demo mode / local development without Twilio - see config/env.js
-  if (env.exposeOtp) response.devOtp = code;
+  // Only for demo mode, demo accounts, or local development without Twilio - see config/env.js
+  if (env.exposeOtp || simulate) response.devOtp = code;
   res.json(response);
 }
 
