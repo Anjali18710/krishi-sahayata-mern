@@ -14,14 +14,25 @@ const app = express();
 // Render and similar hosts sit behind a proxy; needed so rate limiting sees the real IP.
 app.set('trust proxy', 1);
 
-app.use(helmet());
 app.use(
-  cors({
-    origin(origin, callback) {
-      // Allow tools like curl/Postman (no origin) and the configured frontend URLs.
-      if (!origin || env.clientUrls.includes(origin)) return callback(null, true);
-      return callback(new Error(`Origin ${origin} is not allowed by CORS`));
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        // blob: is needed to show claim photos, which the React app downloads with the login token
+        'img-src': ["'self'", 'data:', 'blob:'],
+      },
     },
+  })
+);
+// CORS: which other websites may call this API from a browser.
+// Allowed: the frontend URLs in CLIENT_URL, and this server itself (when it serves the React build).
+// Other origins simply get no CORS headers, so the browser blocks them.
+app.use(
+  '/api',
+  cors((req, callback) => {
+    const origin = req.get('origin');
+    const sameOrigin = origin === `${req.protocol}://${req.get('host')}`;
+    callback(null, { origin: !origin || sameOrigin || env.clientUrls.includes(origin) });
   })
 );
 app.use(express.json({ limit: '100kb' }));
