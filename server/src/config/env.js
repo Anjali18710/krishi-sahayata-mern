@@ -42,6 +42,12 @@ env.isTest = env.nodeEnv === 'test';
 env.isProduction = env.nodeEnv === 'production';
 env.smsEnabled = Boolean(env.twilio.accountSid && env.twilio.authToken && env.twilio.fromNumber);
 
+// DEMO_MODE=true shows the OTP on screen, so recruiters can try the deployed app
+// without receiving an SMS (a Twilio trial can only text numbers you have verified).
+env.demoMode = process.env.DEMO_MODE === 'true';
+// When the OTP may be returned in the API response: demo mode, or local development without Twilio.
+env.exposeOtp = env.demoMode || (!env.isProduction && !env.smsEnabled);
+
 if (!env.jwtSecret) {
   if (env.isProduction) {
     throw new Error('JWT_SECRET must be set in production');

@@ -31,6 +31,9 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
 });
 
+app.use('/api/auth', require('./routes/auth.routes'));
+app.use('/api/users', require('./routes/users.routes'));
+
 // If the React app has been built (client/dist exists), serve it from the same server.
 // This lets the whole project run as a single service in production.
 const clientDist = path.join(__dirname, '..', '..', 'client', 'dist');
