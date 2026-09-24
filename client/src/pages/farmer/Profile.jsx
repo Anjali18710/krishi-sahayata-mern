@@ -6,7 +6,7 @@ import Field from '../../components/Field';
 import PlacePicker from '../../components/PlacePicker';
 
 export default function Profile() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user, updateUser } = useAuth();
   const [name, setName] = useState(user.name);
   const [village, setVillage] = useState(user.village || '');
@@ -24,6 +24,7 @@ export default function Profile() {
       if (location) body.farmLocation = { latitude: location.latitude, longitude: location.longitude, label: location.label };
       const { data } = await api.patch('/auth/me', body);
       updateUser(data.user);
+      i18n.changeLanguage(data.user.language); // show the app in the chosen language too
       setMessage({ type: 'success', text: t('profile.saved') });
     } catch (err) {
       setMessage({ type: 'error', text: errorMessage(err) });

@@ -1,6 +1,7 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { homePathFor, useAuth } from '../context/AuthContext';
+import LanguageSwitch from './LanguageSwitch';
 
 function Logo() {
   return (
@@ -47,6 +48,7 @@ export default function Navbar() {
           ))}
         </div>
         <div className="nav-right">
+          <LanguageSwitch />
           {user ? (
             <>
               <span className="small" style={{ color: '#dfeadf' }}>
