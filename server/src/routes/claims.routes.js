@@ -2,6 +2,7 @@ const express = require('express');
 const { body, param, query } = require('express-validator');
 const validate = require('../middleware/validate');
 const { requireAuth, requireRole } = require('../middleware/auth');
+const { parsePhotos, storePhotos } = require('../middleware/upload');
 const ctrl = require('../controllers/claims.controller');
 const { ROLES, CAUSES_OF_LOSS, SEASONS } = require('../constants');
 const { ALL_STATUSES } = require('../services/claimWorkflow');
@@ -48,7 +49,8 @@ const createRules = [
   body('accountNumber').trim().matches(/^\d{9,18}$/).withMessage('Account number must be 9 to 18 digits'),
 ];
 
-router.post('/', requireRole(ROLES.FARMER), createRules, validate, ctrl.createClaim);
+// Order matters: read the multipart form -> validate the fields -> save photos -> create the claim
+router.post('/', requireRole(ROLES.FARMER), parsePhotos, createRules, validate, storePhotos, ctrl.createClaim);
 
 router.get(
   '/',

@@ -9,6 +9,7 @@ const { ROLES } = require('../constants');
 const { STATUS, OPEN_STATUSES, applyTransition } = require('../services/claimWorkflow');
 const { notifyStatusChange } = require('../services/claimNotifications');
 const { pickOfficerForDistrict } = require('../services/assignment.service');
+const { deleteFile } = require('../services/storage.service');
 
 // ---------- helpers ----------
 
@@ -90,7 +91,13 @@ async function createClaim(req, res) {
       },
     ],
   });
-  await claim.save();
+  try {
+    await claim.save();
+  } catch (err) {
+    // Don't leave orphaned photos in GridFS if the claim could not be saved
+    await Promise.all(claim.photos.map((p) => deleteFile(p.fileId)));
+    throw err;
+  }
 
   await notifyStatusChange(claim, farmer);
 
