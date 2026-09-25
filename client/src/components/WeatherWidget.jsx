@@ -1,7 +1,9 @@
-// 7-day forecast for the farmer's farm location (Open-Meteo, through our backend).
+// 7-day forecast for the farmer's farm location (Open-Meteo, through our backend;
+// if the backend's Open-Meteo limit is used up, the browser asks Open-Meteo directly).
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api, errorMessage } from '../api';
+import { fetchForecastDirect, isWeatherUnavailable } from '../openMeteo';
 
 // WMO weather codes used by Open-Meteo, grouped into simple labels
 function weatherKey(code) {
@@ -28,7 +30,12 @@ export default function WeatherWidget({ location }) {
     setError('');
     api
       .get('/weather/forecast', { params: { latitude: location.latitude, longitude: location.longitude } })
-      .then((res) => setDays(res.data.days))
+      .then((res) => res.data.days)
+      .catch((err) => {
+        if (isWeatherUnavailable(err)) return fetchForecastDirect(location.latitude, location.longitude);
+        throw err;
+      })
+      .then(setDays)
       .catch((err) => setError(errorMessage(err)));
   }, [location?.latitude, location?.longitude]);
 

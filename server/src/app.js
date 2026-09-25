@@ -20,6 +20,8 @@ app.use(
       directives: {
         // blob: is needed to show claim photos, which the React app downloads with the login token
         'img-src': ["'self'", 'data:', 'blob:'],
+        // The React app may call Open-Meteo directly if our server's free Open-Meteo limit runs out
+        'connect-src': ["'self'", 'https://api.open-meteo.com', 'https://geocoding-api.open-meteo.com'],
       },
     },
   })

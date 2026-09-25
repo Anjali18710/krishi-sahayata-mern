@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api, errorMessage } from '../api';
+import { isWeatherUnavailable, searchPlacesDirect } from '../openMeteo';
 
 export default function PlacePicker({ value, onChange }) {
   const { t } = useTranslation();
@@ -23,9 +24,15 @@ export default function PlacePicker({ value, onChange }) {
       setSearching(true);
       setError('');
       try {
-        const { data } = await api.get('/weather/places', { params: { q } });
-        setResults(data.places);
-        if (data.places.length === 0) setError(t('place.noResults'));
+        let places;
+        try {
+          places = (await api.get('/weather/places', { params: { q } })).data.places;
+        } catch (err) {
+          if (!isWeatherUnavailable(err)) throw err;
+          places = await searchPlacesDirect(q); // backup: ask Open-Meteo from the browser
+        }
+        setResults(places);
+        if (places.length === 0) setError(t('place.noResults'));
       } catch (err) {
         setError(errorMessage(err));
       } finally {
