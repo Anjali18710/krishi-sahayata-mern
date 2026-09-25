@@ -26,11 +26,13 @@ async function runWeatherCheck(claimId) {
     };
   } catch (err) {
     // e.g. Open-Meteo is down. Staff can re-run the check later from the claim page.
+    const reason = err.response?.data?.reason || err.message;
+    console.error(`Weather check failed for ${claim.claimNumber}: ${err.response?.status || ''} ${reason}`);
     claim.weatherCheck = {
       status: 'failed',
       verdict: 'inconclusive',
       reasons: ['Weather service could not be reached. Try running the check again.'],
-      error: err.message,
+      error: reason,
       checkedAt: new Date(),
     };
   }

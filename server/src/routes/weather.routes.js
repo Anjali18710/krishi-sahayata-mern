@@ -16,6 +16,8 @@ async function callWeatherApi(fn) {
     return await fn();
   } catch (err) {
     if (err instanceof ApiError) throw err;
+    // Log the real reason (e.g. Open-Meteo's own error message) so it shows up in the server logs
+    console.error(`Open-Meteo request failed: ${err.response?.status || ''} ${err.response?.data?.reason || err.message}`);
     throw new ApiError(502, 'Weather service is not responding. Please try again shortly.', 'WEATHER_UNAVAILABLE');
   }
 }

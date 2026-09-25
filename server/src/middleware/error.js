@@ -44,7 +44,8 @@ function errorHandler(err, req, res, next) {
 
   if (status >= 500) {
     console.error(err);
-    if (env.isProduction) body = { error: 'Something went wrong', code: 'INTERNAL_ERROR' };
+    // Hide unexpected internal errors in production, but keep our own friendly ApiError messages
+    if (env.isProduction && !(err instanceof ApiError)) body = { error: 'Something went wrong', code: 'INTERNAL_ERROR' };
   }
 
   res.status(status).json(body);
