@@ -258,6 +258,25 @@ function AssignCard({ claim, onUpdated }) {
   );
 }
 
+// Under "Amount claimed": the per-acre amount and, if the admin set one, the crop's limit.
+// Only a hint for the officer - it never decides the claim.
+function AmountHint({ check }) {
+  const { t } = useTranslation();
+  if (check.limit == null) {
+    return <div className="small muted">{t('amountCheck.noLimit', { perAcre: rupees(check.perAcre), crop: check.crop })}</div>;
+  }
+  return (
+    <div
+      className="small"
+      style={{ color: check.overLimit ? 'var(--bad)' : 'var(--good)', fontWeight: check.overLimit ? 600 : 400 }}
+    >
+      {check.overLimit
+        ? `⚠ ${t('amountCheck.over', { ratio: check.ratio, perAcre: rupees(check.perAcre), limit: rupees(check.limit), max: rupees(check.maxAllowed) })}`
+        : `✓ ${t('amountCheck.within', { perAcre: rupees(check.perAcre), limit: rupees(check.limit) })}`}
+    </div>
+  );
+}
+
 export default function ClaimDetail() {
   const { id } = useParams();
   const { t, i18n } = useTranslation();
@@ -265,6 +284,7 @@ export default function ClaimDetail() {
   const location = useLocation();
   const [claim, setClaim] = useState(null);
   const [notifications, setNotifications] = useState([]);
+  const [amountCheck, setAmountCheck] = useState(null); // staff only: claimed amount vs the crop's per-acre limit
   const [error, setError] = useState('');
   const isStaff = user.role !== 'farmer';
 
@@ -274,6 +294,7 @@ export default function ClaimDetail() {
       .then((res) => {
         setClaim(res.data.claim);
         setNotifications(res.data.notifications || []);
+        setAmountCheck(res.data.amountCheck || null);
       })
       .catch((err) => setError(errorMessage(err)));
   }, [id]);
@@ -332,7 +353,10 @@ export default function ClaimDetail() {
               <dt>{t('claim.submittedOn')}</dt>
               <dd>{formatDate(claim.submittedAt, lang)}</dd>
               <dt>{t('claim.amountClaimed')}</dt>
-              <dd>{rupees(claim.amountClaimed)}</dd>
+              <dd>
+                {rupees(claim.amountClaimed)}
+                {isStaff && amountCheck && <AmountHint check={amountCheck} />}
+              </dd>
               {claim.amountApproved != null && (
                 <>
                   <dt>{t('claim.amountApproved')}</dt>
@@ -349,6 +373,13 @@ export default function ClaimDetail() {
               <dt>{t('claim.bank')}</dt>
               <dd>
                 {claim.bank.bankName} · {claim.bank.ifsc} · ****{claim.bank.accountLast4}
+                {isStaff && claim.bank.ifscVerified != null && (
+                  <div className="small" style={{ color: claim.bank.ifscVerified ? 'var(--good)' : 'var(--warn)' }}>
+                    {claim.bank.ifscVerified
+                      ? `✓ ${t('claim.ifscVerified')}${claim.bank.branch ? ` · ${claim.bank.branch}` : ''}`
+                      : t('claim.ifscNotVerified')}
+                  </div>
+                )}
               </dd>
               <dt>{t('claim.officer')}</dt>
               <dd>

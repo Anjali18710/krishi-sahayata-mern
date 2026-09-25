@@ -1,5 +1,5 @@
 // Multi-step form for filing a new claim: 1 crop & loss -> 2 farm location -> 3 bank -> 4 photos & review.
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api, errorMessage, fieldErrors } from '../../api';
@@ -11,6 +11,7 @@ import { rupees, todayISO } from '../../utils/format';
 
 const MAX_PHOTOS = 3;
 const MAX_PHOTO_BYTES = 2 * 1024 * 1024;
+const IFSC_PATTERN = /^[A-Z]{4}0[A-Z0-9]{6}$/;
 
 // Which step each field is on, so a server error can send the user back to the right step
 const STEP_FIELDS = [
@@ -47,6 +48,33 @@ export default function NewClaim() {
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  // IFSC lookup: { status: 'idle' | 'checking' | 'found' | 'notFound' | 'unavailable', branch? }
+  const [ifscInfo, setIfscInfo] = useState({ status: 'idle' });
+
+  // When a complete IFSC is typed, look it up and fill in the bank name automatically
+  useEffect(() => {
+    const code = form.ifsc.trim();
+    if (!IFSC_PATTERN.test(code)) {
+      setIfscInfo({ status: 'idle' });
+      return undefined;
+    }
+    setIfscInfo({ status: 'checking' });
+    let cancelled = false; // ignore old answers if the farmer keeps typing
+    const timer = setTimeout(async () => {
+      try {
+        const { data } = await api.get(`/ifsc/${code}`);
+        if (cancelled) return;
+        setIfscInfo({ status: 'found', branch: data.branch });
+        setForm((f) => ({ ...f, bankName: data.branch.bank }));
+      } catch (err) {
+        if (!cancelled) setIfscInfo({ status: err.response?.status === 404 ? 'notFound' : 'unavailable' });
+      }
+    }, 400);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [form.ifsc]);
 
   const set = (key) => (e) => setForm({ ...form, [key]: e.target.value });
   const steps = [t('newClaim.steps.loss'), t('newClaim.steps.location'), t('newClaim.steps.bank'), t('newClaim.steps.review')];
@@ -68,7 +96,9 @@ export default function NewClaim() {
     }
     if (s === 2) {
       ['accountHolderName', 'bankName', 'ifsc', 'accountNumber'].forEach(required);
-      if (form.ifsc && !/^[A-Za-z]{4}0[A-Za-z0-9]{6}$/.test(form.ifsc.trim())) e.ifsc = t('validation.ifsc');
+      if (form.ifsc && !IFSC_PATTERN.test(form.ifsc.trim())) e.ifsc = t('validation.ifsc');
+      else if (ifscInfo.status === 'notFound') e.ifsc = t('newClaim.ifscNotFound');
+      else if (ifscInfo.status === 'checking') e.ifsc = t('newClaim.ifscChecking');
       if (form.accountNumber && !/^\d{9,18}$/.test(form.accountNumber)) e.accountNumber = t('validation.accountNumber');
       if (form.accountNumber !== form.confirmAccountNumber) e.confirmAccountNumber = t('validation.accountMismatch');
     }
@@ -215,21 +245,38 @@ export default function NewClaim() {
         {step === 2 && (
           <>
             <p className="small muted">{t('newClaim.bankNote')}</p>
+            <Field label={t('newClaim.ifsc')} hint={t('newClaim.ifscHint')} error={errors.ifsc}>
+              <input
+                value={form.ifsc}
+                onChange={(e) => setForm({ ...form, ifsc: e.target.value.toUpperCase().replace(/\s/g, '') })}
+                maxLength={11}
+              />
+            </Field>
+            {ifscInfo.status === 'checking' && <p className="small muted">{t('newClaim.ifscChecking')}</p>}
+            {ifscInfo.status === 'found' && (
+              <div className="alert alert-success small">
+                ✓ {ifscInfo.branch.bank} ·{' '}
+                {[ifscInfo.branch.branch, ifscInfo.branch.city, ifscInfo.branch.state].filter(Boolean).join(', ')}
+              </div>
+            )}
+            {ifscInfo.status === 'notFound' && !errors.ifsc && (
+              <p className="small" style={{ color: 'var(--bad)' }}>
+                {t('newClaim.ifscNotFound')}
+              </p>
+            )}
+            {ifscInfo.status === 'unavailable' && <p className="small muted">{t('newClaim.ifscUnavailable')}</p>}
             <div className="form-row">
               <Field label={t('newClaim.accountHolder')} error={errors.accountHolderName}>
                 <input value={form.accountHolderName} onChange={set('accountHolderName')} />
               </Field>
               <Field label={t('newClaim.bankName')} error={errors.bankName}>
-                <input value={form.bankName} onChange={set('bankName')} />
+                <input
+                  value={form.bankName}
+                  onChange={set('bankName')}
+                  readOnly={ifscInfo.status === 'found'} // filled from the IFSC, so it can't be mistyped
+                />
               </Field>
             </div>
-            <Field label={t('newClaim.ifsc')} hint={t('newClaim.ifscHint')} error={errors.ifsc}>
-              <input
-                value={form.ifsc}
-                onChange={(e) => setForm({ ...form, ifsc: e.target.value.toUpperCase() })}
-                maxLength={11}
-              />
-            </Field>
             <div className="form-row">
               <Field label={t('newClaim.accountNumber')} error={errors.accountNumber}>
                 <input

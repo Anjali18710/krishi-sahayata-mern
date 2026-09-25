@@ -1,5 +1,7 @@
 {
-  "app": { "name": "Krishi Sahayata" },
+  "app": {
+    "name": "Krishi Sahayata"
+  },
   "nav": {
     "main": "Main navigation",
     "track": "Track a claim",
@@ -10,9 +12,14 @@
     "analytics": "Analytics",
     "users": "Staff",
     "login": "Log in",
-    "logout": "Log out"
+    "logout": "Log out",
+    "cropLimits": "Crop limits"
   },
-  "roles": { "farmer": "Farmer", "officer": "Field officer", "admin": "Admin" },
+  "roles": {
+    "farmer": "Farmer",
+    "officer": "Field officer",
+    "admin": "Admin"
+  },
   "common": {
     "loading": "Loading…",
     "searching": "Searching…",
@@ -50,7 +57,11 @@
     "fire": "Fire",
     "other": "Other"
   },
-  "season": { "kharif": "Kharif (monsoon)", "rabi": "Rabi (winter)", "zaid": "Zaid (summer)" },
+  "season": {
+    "kharif": "Kharif (monsoon)",
+    "rabi": "Rabi (winter)",
+    "zaid": "Zaid (summer)"
+  },
   "verdict": {
     "consistent": "Weather matches",
     "inconclusive": "Unclear",
@@ -65,9 +76,18 @@
     "login": "Log in",
     "track": "Track a claim",
     "features": {
-      "file": { "title": "File online", "text": "Report crop loss with photos and your farm location in a few minutes. No office visit needed." },
-      "track": { "title": "Track every step", "text": "See when your claim is reviewed, verified, approved and paid, with an SMS at each step." },
-      "weather": { "title": "Weather-checked", "text": "Each claim is compared with recorded rainfall, temperature and wind at your farm, so genuine claims move faster." }
+      "file": {
+        "title": "File online",
+        "text": "Report crop loss with photos and your farm location in a few minutes. No office visit needed."
+      },
+      "track": {
+        "title": "Track every step",
+        "text": "See when your claim is reviewed, verified, approved and paid, with an SMS at each step."
+      },
+      "weather": {
+        "title": "Weather-checked",
+        "text": "Each claim is compared with recorded rainfall, temperature and wind at your farm, so genuine claims move faster."
+      }
     }
   },
   "track": {
@@ -149,7 +169,12 @@
   },
   "newClaim": {
     "title": "File a crop loss claim",
-    "steps": { "loss": "Crop & loss", "location": "Farm location", "bank": "Bank details", "review": "Photos & submit" },
+    "steps": {
+      "loss": "Crop & loss",
+      "location": "Farm location",
+      "bank": "Bank details",
+      "review": "Photos & submit"
+    },
     "cropName": "Crop",
     "cropHint": "e.g. Paddy, Wheat, Maize",
     "season": "Season",
@@ -173,7 +198,10 @@
     "photosHint": "Up to 3 photos, JPG / PNG / WEBP, max 2 MB each. Optional but helps officers.",
     "photoTooBig": "\"{{name}}\" is larger than 2 MB",
     "review": "Review your claim",
-    "submit": "Submit claim"
+    "submit": "Submit claim",
+    "ifscChecking": "Checking IFSC code…",
+    "ifscNotFound": "No bank branch found for this IFSC code. Please check your passbook.",
+    "ifscUnavailable": "Could not check the IFSC code right now. You can still continue."
   },
   "validation": {
     "required": "This field is required",
@@ -204,9 +232,13 @@
     "photoFailed": "Could not load",
     "progress": "Progress",
     "overdue": "Overdue",
-    "filedSuccess": "Your claim {{number}} has been submitted. We will send you an SMS at every step."
+    "filedSuccess": "Your claim {{number}} has been submitted. We will send you an SMS at every step.",
+    "ifscVerified": "IFSC checked",
+    "ifscNotVerified": "IFSC not checked (lookup service was unavailable)"
   },
-  "timeline": { "note": "Note" },
+  "timeline": {
+    "note": "Note"
+  },
   "weatherCheck": {
     "title": "Weather check",
     "short": "Weather",
@@ -235,11 +267,19 @@
     "update": "Update status",
     "notAssigned": "This claim is not assigned to you, so you can view it but not change its status."
   },
-  "assign": { "title": "Assign officer", "submit": "Assign" },
+  "assign": {
+    "title": "Assign officer",
+    "submit": "Assign"
+  },
   "sms": {
     "title": "SMS log",
     "none": "No SMS sent yet.",
-    "status": { "pending": "Pending", "sent": "Sent", "failed": "Failed", "logged": "Logged (not sent)" }
+    "status": {
+      "pending": "Pending",
+      "sent": "Sent",
+      "failed": "Failed",
+      "logged": "Logged (not sent)"
+    }
   },
   "staff": {
     "allClaims": "All claims",
@@ -248,7 +288,12 @@
     "search": "Search",
     "searchPlaceholder": "Claim no., farmer or crop",
     "sort": "Sort by",
-    "sorts": { "newest": "Newest first", "oldest": "Oldest first", "amount": "Highest amount", "stale": "Longest waiting" },
+    "sorts": {
+      "newest": "Newest first",
+      "oldest": "Oldest first",
+      "amount": "Highest amount",
+      "stale": "Longest waiting"
+    },
     "onlyOverdue": "Only overdue",
     "onlyUnassigned": "Only unassigned",
     "clearFilters": "Clear filters",
@@ -292,8 +337,34 @@
     "passwordHint": "At least 8 characters",
     "districtHint": "New claims from this district are assigned to this officer",
     "create": "Create account",
-    "created": "Account created for {{name}}."
+    "created": "Account created for {{name}}.",
+    "claimsAssigned_one": "1 waiting claim in this district was assigned to them.",
+    "claimsAssigned_other": "{{count}} waiting claims in this district were assigned to them."
   },
-  "profile": { "saved": "Profile saved." },
-  "notFound": { "title": "Page not found", "text": "The page you are looking for does not exist.", "home": "Go to home page" }
+  "profile": {
+    "saved": "Profile saved."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "text": "The page you are looking for does not exist.",
+    "home": "Go to home page"
+  },
+  "amountCheck": {
+    "noLimit": "{{perAcre}} per acre. No limit set for {{crop}} yet.",
+    "within": "{{perAcre}} per acre, within the limit of {{limit}} per acre",
+    "over": "{{ratio}}× the limit: {{perAcre}} per acre claimed, limit {{limit}} per acre (max {{max}} for this area)"
+  },
+  "cropLimits": {
+    "title": "Crop limits",
+    "intro": "Set the maximum payout per acre for each crop. Officers see a warning on claims above this limit. It is only a hint: the officer still decides.",
+    "none": "No limits set yet.",
+    "crop": "Crop",
+    "cropHint": "Same name farmers use, e.g. Paddy",
+    "maxPerAcre": "Maximum per acre (₹)",
+    "addTitle": "Add or update a crop limit",
+    "save": "Save limit",
+    "saved": "Limit saved for {{crop}}",
+    "edit": "Edit",
+    "remove": "Remove"
+  }
 }

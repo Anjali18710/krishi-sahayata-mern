@@ -18,8 +18,14 @@ const SYSTEM_PROMPT = [
 const aiEnabled = () => Boolean(env.ai.groqApiKey || env.ai.geminiApiKey);
 
 // Only non-personal facts are sent to the AI provider (no phone or bank details).
-function buildClaimFacts(claim) {
+function buildClaimFacts(claim, amountCheck) {
   const wc = claim.weatherCheck || {};
+  let amountLine = 'Amount check: no per-acre limit set for this crop';
+  if (amountCheck?.limit) {
+    amountLine =
+      `Amount check: Rs ${amountCheck.perAcre} per acre claimed; the limit for this crop is Rs ${amountCheck.limit} per acre ` +
+      `(${amountCheck.overLimit ? `ABOVE the limit, ${amountCheck.ratio}x` : 'within the limit'})`;
+  }
   return [
     `Claim number: ${claim.claimNumber}`,
     `Current status: ${claim.status}`,
@@ -29,6 +35,8 @@ function buildClaimFacts(claim) {
     `Submitted: ${claim.submittedAt.toISOString().slice(0, 10)}`,
     `Location: ${[claim.location.village, claim.location.district, claim.location.state].filter(Boolean).join(', ')}`,
     `Amount claimed: Rs ${claim.amountClaimed}`,
+    amountLine,
+    `IFSC code checked against the bank directory: ${claim.bank?.ifscVerified ? 'yes, found' : 'no'}`,
     `Farmer's description: ${claim.description || '(none)'}`,
     `Number of photos: ${claim.photos.length}`,
     `Weather check verdict: ${wc.verdict || 'not run'}${wc.score != null ? ` (score ${wc.score}/100)` : ''}`,
@@ -40,6 +48,12 @@ function buildClaimFacts(claim) {
         .join(' | ') || '(none)'
     }`,
   ].join('\n');
+}
+
+// The provider's own error text (e.g. "Invalid API Key") is much more useful in the logs than "status 401"
+function describeError(err) {
+  const detail = err.response?.data?.error?.message || err.response?.data?.error || err.message;
+  return `${err.response?.status || ''} ${typeof detail === 'string' ? detail : JSON.stringify(detail)}`.trim();
 }
 
 async function callGroq(facts) {
@@ -74,7 +88,7 @@ async function callGemini(facts) {
   return { text: text.trim(), provider: 'gemini', model: env.ai.geminiModel };
 }
 
-async function summarizeClaim(claim) {
+async function summarizeClaim(claim, amountCheck) {
   if (!aiEnabled()) {
     throw new ApiError(
       503,
@@ -82,21 +96,21 @@ async function summarizeClaim(claim) {
       'AI_DISABLED'
     );
   }
-  const facts = buildClaimFacts(claim);
+  const facts = buildClaimFacts(claim, amountCheck);
   const errors = [];
 
   if (env.ai.groqApiKey) {
     try {
       return await callGroq(facts);
     } catch (err) {
-      errors.push(`Groq: ${err.response?.status || ''} ${err.message}`);
+      errors.push(`Groq: ${describeError(err)}`);
     }
   }
   if (env.ai.geminiApiKey) {
     try {
       return await callGemini(facts);
     } catch (err) {
-      errors.push(`Gemini: ${err.response?.status || ''} ${err.message}`);
+      errors.push(`Gemini: ${describeError(err)}`);
     }
   }
   console.error('AI summary failed:', errors.join('; '));

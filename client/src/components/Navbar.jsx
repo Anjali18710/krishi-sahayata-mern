@@ -25,7 +25,7 @@ export default function Navbar() {
     links.push(['/farmer', t('nav.myClaims')], ['/farmer/new', t('nav.newClaim')], ['/farmer/profile', t('nav.profile')]);
   } else {
     links.push(['/staff', t('nav.claims')], ['/staff/analytics', t('nav.analytics')]);
-    if (user.role === 'admin') links.push(['/staff/users', t('nav.users')]);
+    if (user.role === 'admin') links.push(['/staff/users', t('nav.users')], ['/staff/crop-limits', t('nav.cropLimits')]);
   }
 
   function handleLogout() {

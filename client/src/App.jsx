@@ -12,6 +12,7 @@ import Profile from './pages/farmer/Profile';
 import ClaimDetail from './pages/ClaimDetail';
 import StaffDashboard from './pages/staff/StaffDashboard';
 import Users from './pages/staff/Users';
+import CropLimits from './pages/staff/CropLimits';
 import NotFound from './pages/NotFound';
 
 // The charts library is large, so the analytics page is only downloaded when someone opens it
@@ -46,6 +47,7 @@ export default function App() {
 
             <Route element={<ProtectedRoute roles={['admin']} />}>
               <Route path="/staff/users" element={<Users />} />
+              <Route path="/staff/crop-limits" element={<CropLimits />} />
             </Route>
 
             <Route path="/home" element={<Navigate to="/" replace />} />

@@ -33,8 +33,10 @@ export default function Users() {
     setErrors({});
     setMessage(null);
     try {
-      await api.post('/users/staff', form);
-      setMessage({ type: 'success', text: t('users.created', { name: form.name }) });
+      const { data } = await api.post('/users/staff', form);
+      let text = t('users.created', { name: form.name });
+      if (data.claimsAssigned > 0) text += ` ${t('users.claimsAssigned', { count: data.claimsAssigned })}`;
+      setMessage({ type: 'success', text });
       setForm(EMPTY);
       load();
     } catch (err) {
@@ -47,7 +49,10 @@ export default function Users() {
 
   async function toggleActive(u) {
     try {
-      await api.patch(`/users/${u._id}`, { isActive: !u.isActive });
+      const { data } = await api.patch(`/users/${u._id}`, { isActive: !u.isActive });
+      if (data.claimsAssigned > 0) {
+        setMessage({ type: 'success', text: t('users.claimsAssigned', { count: data.claimsAssigned }) });
+      }
       load();
     } catch (err) {
       setMessage({ type: 'error', text: errorMessage(err) });

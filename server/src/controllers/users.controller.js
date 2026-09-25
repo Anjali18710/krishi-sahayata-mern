@@ -3,6 +3,7 @@ const User = require('../models/User');
 const ApiError = require('../utils/ApiError');
 const { normalizeIndianPhone } = require('../utils/phone');
 const { ROLES } = require('../constants');
+const { assignWaitingClaims } = require('../services/assignment.service');
 
 // GET /api/users?role=officer&district=Khordha
 async function listUsers(req, res) {
@@ -27,7 +28,9 @@ async function createStaff(req, res) {
   }
   await user.setPassword(password);
   await user.save();
-  res.status(201).json({ user });
+  // Claims filed earlier in this district with no officer now go to the new officer
+  const claimsAssigned = await assignWaitingClaims(user, req.user);
+  res.status(201).json({ user, claimsAssigned });
 }
 
 // PATCH /api/users/:id   { isActive?, district?, state? }
@@ -42,7 +45,10 @@ async function updateUser(req, res) {
     if (req.body[key] !== undefined) user[key] = req.body[key];
   }
   await user.save();
-  res.json({ user });
+  // An officer moved to another district or switched back on picks up that district's waiting claims
+  const claimsAssigned =
+    req.body.district !== undefined || req.body.isActive === true ? await assignWaitingClaims(user, req.user) : 0;
+  res.json({ user, claimsAssigned });
 }
 
 module.exports = { listUsers, createStaff, updateUser };

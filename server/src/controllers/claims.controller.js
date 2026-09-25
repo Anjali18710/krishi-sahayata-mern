@@ -8,7 +8,9 @@ const { nextSequence } = require('../models/Counter');
 const { ROLES } = require('../constants');
 const { STATUS, OPEN_STATUSES, applyTransition } = require('../services/claimWorkflow');
 const { notifyStatusChange } = require('../services/claimNotifications');
-const { pickOfficerForDistrict } = require('../services/assignment.service');
+const { pickOfficerForDistrict, districtMatch } = require('../services/assignment.service');
+const { lookupIfsc } = require('../services/ifsc.service');
+const { checkClaimAmount } = require('../services/amountCheck.service');
 const { deleteFile } = require('../services/storage.service');
 const { runWeatherCheck, runWeatherCheckInBackground } = require('../services/weatherCheck.service');
 const { summarizeClaim } = require('../services/ai.service');
@@ -21,7 +23,7 @@ function scopeFilter(user) {
   if (user.role === ROLES.FARMER) return { farmer: user._id };
   // Officers: claims assigned to them + unassigned claims in their district
   return {
-    $or: [{ assignedOfficer: user._id }, { 'location.district': user.district, assignedOfficer: null }],
+    $or: [{ assignedOfficer: user._id }, { 'location.district': districtMatch(user.district), assignedOfficer: null }],
   };
 }
 
@@ -30,7 +32,7 @@ function canView(user, claim) {
   if (user.role === ROLES.FARMER) return claim.farmer.equals(user._id);
   const assignedId = claim.assignedOfficer?._id || claim.assignedOfficer;
   if (assignedId) return assignedId.equals(user._id);
-  return claim.location.district === user.district;
+  return claim.location.district.trim().toLowerCase() === String(user.district).trim().toLowerCase();
 }
 
 async function findClaimForUser(id, user) {
@@ -49,6 +51,24 @@ const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 async function createClaim(req, res) {
   const b = req.body;
   const farmer = req.user;
+
+  // Check the IFSC code against the bank directory. An unknown code is refused;
+  // if the lookup service itself is down, the claim is accepted but marked "not verified".
+  let branch = null;
+  let ifscVerified = false;
+  try {
+    branch = await lookupIfsc(b.ifsc);
+    if (!branch) {
+      await Promise.all((req.uploadedPhotos || []).map((p) => deleteFile(p.fileId)));
+      throw ApiError.badRequest('Validation failed', 'VALIDATION_ERROR', [
+        { field: 'ifsc', message: 'No bank branch found for this IFSC code' },
+      ]);
+    }
+    ifscVerified = true;
+  } catch (err) {
+    if (err instanceof ApiError) throw err;
+    console.error(`IFSC lookup failed for ${b.ifsc}: ${err.response?.status || ''} ${err.message}`);
+  }
 
   const year = new Date().getFullYear();
   const seq = await nextSequence(`claim-${year}`);
@@ -75,7 +95,9 @@ async function createClaim(req, res) {
     },
     bank: {
       accountHolderName: b.accountHolderName,
-      bankName: b.bankName,
+      bankName: branch?.bank || b.bankName, // the official bank name when the IFSC was verified
+      branch: branch ? [branch.branch, branch.city].filter(Boolean).join(', ') : undefined,
+      ifscVerified,
       ifsc: b.ifsc,
       accountNumber: b.accountNumber,
       accountLast4: String(b.accountNumber).slice(-4),
@@ -169,6 +191,7 @@ async function getClaim(req, res) {
 
   const response = { claim };
   if (req.user.role !== ROLES.FARMER) {
+    response.amountCheck = await checkClaimAmount(claim);
     response.notifications = await Notification.find({ claim: claim._id })
       .sort({ createdAt: -1 })
       .limit(50)
@@ -244,7 +267,7 @@ async function rerunWeatherCheck(req, res) {
 // POST /api/claims/:id/ai-summary   (officer/admin)
 async function generateAiSummary(req, res) {
   const claim = await findClaimForUser(req.params.id, req.user);
-  const summary = await summarizeClaim(claim);
+  const summary = await summarizeClaim(claim, await checkClaimAmount(claim));
   claim.aiSummary = { ...summary, generatedAt: new Date() };
   await claim.save();
   res.json({ aiSummary: claim.aiSummary });

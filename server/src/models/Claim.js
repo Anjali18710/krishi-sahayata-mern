@@ -67,6 +67,11 @@ const claimSchema = new mongoose.Schema(
       // the UI only shows the last 4 digits.
       accountNumber: { type: String, required: true, select: false },
       accountLast4: { type: String, required: true },
+      // Filled from the IFSC lookup (services/ifsc.service.js)
+      branch: { type: String, trim: true },
+      // true = IFSC found in the bank directory, false = lookup service was down when the claim was filed,
+      // not set = claim filed before IFSC checks existed
+      ifscVerified: Boolean,
     },
 
     photos: { type: [photoSchema], default: [] },
