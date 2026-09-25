@@ -155,7 +155,7 @@ In development they run separately (React on port 5173, API on port 5000; Vite f
 
 The code was built and tested in a cloud workspace with two restrictions:
 
-1. **No real MongoDB could be downloaded there.** Tests ran against a MongoDB-compatible server (FerretDB). 79 of 81 tests passed there. The 2 analytics tests fail on FerretDB only because it doesn't support `$cond`, `$dateToString` and `$avg`. Their queries were checked separately with a JavaScript MongoDB-query engine (mingo) and gave the expected numbers. **Run `npm test` in `server/`** – it uses a real in-memory MongoDB and all 81 should pass.
+1. **No real MongoDB could be downloaded there.** Tests ran against a MongoDB-compatible server (FerretDB). 81 of 83 tests passed there. The 2 analytics tests fail on FerretDB only because it doesn't support `$cond`, `$dateToString` and `$avg`. Their queries were checked separately with a JavaScript MongoDB-query engine (mingo) and gave the expected numbers. **Run `npm test` in `server/`** – it uses a real in-memory MongoDB and all 83 should pass.
 2. **Open-Meteo was blocked there.** The weather code follows the official API docs and is tested with fake data. **Run `npm run seed`** (it runs real weather checks) and open a claim as an officer to see real results.
 
 Twilio and Groq/Gemini have not been called with real keys either; they follow each provider's documented API.

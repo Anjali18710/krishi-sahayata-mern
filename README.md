@@ -19,7 +19,7 @@ A MERN-stack platform where farmers file and track crop-insurance claims, and fi
 | Claim lifecycle | A state machine: `submitted → under_review → field_verification → approved / rejected → disbursed`. Invalid jumps are refused; only admins can mark money as paid; officers can act only on claims assigned to them. Every change is stored in the claim's timeline. |
 | Auto-assignment | New claims go to the active officer in the farmer's district with the fewest open claims. Claims filed where no officer existed yet are handed over automatically when an admin adds (or re-activates) an officer for that district. |
 | Bank details | The IFSC code is checked live against Razorpay's free IFSC directory: the form shows the real bank and branch, unknown codes are refused, and the official bank name is saved. The account number is typed twice to catch typos. (Proving the account itself exists needs a paid "penny drop" service, so that is not done.) |
-| Amount check | Admins set a maximum payout per acre for each crop. Officers see a warning when a claim is above it, e.g. "1.6× the limit". It is a hint only; the officer decides and can approve a lower amount. |
+| Amount check | Admins set a maximum payout per acre for each crop. Officers see a warning when a claim is above it, e.g. "1.6× the limit". It is a hint only; the officer decides and can approve a lower amount. **Two-admin rule:** a limit change is only a proposal until a *different* admin approves it, so one person can't quietly raise a limit for a friend. Every proposal, approval and rejection is kept in a permanent change history. |
 | SMS (Twilio) | SMS on every status change in the farmer's language (English / Hindi), with retries and a delivery log per claim. Works without Twilio too (messages are printed to the terminal). |
 | Weather check | Uses Open-Meteo historical data at the farm location to score how well the weather supports the reported cause (drought, flood, excess rain, hailstorm, cyclone, heatwave, frost). Gives a 0-100 score, a verdict and plain-English reasons. Rainfall thresholds follow IMD categories. |
 | Weather alerts | A daily node-cron job checks the 2-day forecast for every farm and texts farmers about heavy rain, extreme heat or strong wind. |
@@ -158,7 +158,7 @@ cd server
 npm test
 ```
 
-81 tests: unit tests for the claim state machine, weather scoring, weather alerts and phone parsing; integration tests (Supertest) for OTP login, permissions, claim filing, photo upload security, status changes with SMS, bulk updates, filters, public tracking, the weather check, IFSC checks, crop amount limits, assigning waiting claims to new officers, and analytics. Tests use an in-memory MongoDB (downloaded automatically on the first run) and mock Open-Meteo and the IFSC directory, so they don't need Twilio or the internet.
+83 tests: unit tests for the claim state machine, weather scoring, weather alerts and phone parsing; integration tests (Supertest) for OTP login, permissions, claim filing, photo upload security, status changes with SMS, bulk updates, filters, public tracking, the weather check, IFSC checks, crop amount limits with the two-admin rule, assigning waiting claims to new officers, and analytics. Tests use an in-memory MongoDB (downloaded automatically on the first run) and mock Open-Meteo and the IFSC directory, so they don't need Twilio or the internet.
 
 If the in-memory MongoDB can't be downloaded on your network, run the tests against your Atlas cluster instead. Each test file uses its own temporary `ks-test-...` database, so your real data is not touched:
 
@@ -185,7 +185,8 @@ npm test
 | GET | `/api/weather/forecast`, `/api/weather/places` | logged in |
 | POST | `/api/weather/alerts/run` | admin |
 | GET | `/api/ifsc/:code` | logged in |
-| GET / PUT / DELETE | `/api/crop-limits`, `/api/crop-limits/:id` | staff can read, admin can change |
+| GET | `/api/crop-limits`, `/api/crop-limits/history` | officer, admin |
+| POST | `/api/crop-limits/proposals`, `/api/crop-limits/:id/approve`, `/api/crop-limits/:id/reject` | admin (approver must differ from proposer) |
 | GET | `/api/analytics/summary`, `/api/analytics/officers` | officer / admin |
 | GET / POST / PATCH | `/api/users`, `/api/users/staff`, `/api/users/:id` | admin |
 | GET | `/api/public/track?claimNumber=&phoneLast4=` | public |

@@ -11,7 +11,8 @@ const round = (n) => Math.round(n);
 async function checkClaimAmount(claim) {
   const perAcre = round(claim.amountClaimed / claim.crop.areaAcres);
   const limitDoc = await CropLimit.findOne({ crop: claim.crop.name.trim().toLowerCase() }).lean();
-  if (!limitDoc) return { crop: claim.crop.name, perAcre, limit: null };
+  // No limit yet, or only a proposal that no second admin has approved
+  if (limitDoc?.maxPerAcre == null) return { crop: claim.crop.name, perAcre, limit: null };
 
   const maxAllowed = round(limitDoc.maxPerAcre * claim.crop.areaAcres);
   return {

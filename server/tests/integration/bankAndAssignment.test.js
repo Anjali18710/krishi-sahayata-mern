@@ -95,27 +95,40 @@ describe('assigning waiting claims to a new officer', () => {
   });
 });
 
-describe('crop amount limits', () => {
-  test('only admins can set limits; officers see an over-limit warning on the claim', async () => {
-    const admin = await createStaff('admin');
+describe('crop amount limits (two-admin rule)', () => {
+  const propose = (user, body) => request(app).post('/api/crop-limits/proposals').set(authHeader(user)).send(body);
+  const decide = (user, id, action) => request(app).post(`/api/crop-limits/${id}/${action}`).set(authHeader(user));
+
+  test('a limit only takes effect after a different admin approves it', async () => {
+    const adminA = await createStaff('admin', { name: 'Admin A' });
+    const adminB = await createStaff('admin', { name: 'Admin B' });
     const officer = await createStaff('officer', { district: 'Puri' });
     const farmer = await createFarmer();
 
-    const denied = await request(app).put('/api/crop-limits').set(authHeader(officer)).send({ crop: 'Paddy', maxPerAcre: 8000 });
-    expect(denied.status).toBe(403);
+    expect((await propose(officer, { crop: 'Paddy', maxPerAcre: 6000 })).status).toBe(403);
 
-    const set = await request(app).put('/api/crop-limits').set(authHeader(admin)).send({ crop: ' Paddy ', maxPerAcre: 8000 });
-    expect(set.status).toBe(200);
-    expect(set.body.limit.crop).toBe('paddy');
+    const proposed = await propose(adminA, { crop: ' Paddy ', maxPerAcre: 6000 });
+    expect(proposed.status).toBe(201);
+    const id = proposed.body.limit._id;
+    expect(proposed.body.limit).toMatchObject({ crop: 'paddy', maxPerAcre: null, pending: { maxPerAcre: 6000 } });
 
-    // Updating the same crop replaces the limit instead of adding a duplicate
-    await request(app).put('/api/crop-limits').set(authHeader(admin)).send({ crop: 'PADDY', maxPerAcre: 6000 });
-    const list = await request(app).get('/api/crop-limits').set(authHeader(officer));
-    expect(list.body.limits).toHaveLength(1);
-    expect(list.body.limits[0].maxPerAcre).toBe(6000);
+    // Only one pending change at a time
+    expect((await propose(adminB, { crop: 'PADDY', maxPerAcre: 9000 })).status).toBe(409);
 
-    // 25,000 for 2.5 acres = 10,000 per acre, limit 6,000 -> over by 1.67x
+    // 25,000 for 2.5 acres = 10,000 per acre. Not approved yet, so no limit applies.
     const claim = (await fileClaim(farmer, { cropName: 'paddy', areaAcres: 2.5, amountClaimed: 25000 })).body.claim;
+    const before = await request(app).get(`/api/claims/${claim._id}`).set(authHeader(officer));
+    expect(before.body.amountCheck).toEqual({ crop: 'paddy', perAcre: 10000, limit: null });
+
+    // The proposer cannot approve their own change
+    const self = await decide(adminA, id, 'approve');
+    expect(self.status).toBe(403);
+
+    const approved = await decide(adminB, id, 'approve');
+    expect(approved.status).toBe(200);
+    expect(approved.body.limit).toMatchObject({ maxPerAcre: 6000 });
+    expect(approved.body.limit.pending?.proposedBy).toBeUndefined();
+
     const detail = await request(app).get(`/api/claims/${claim._id}`).set(authHeader(officer));
     expect(detail.body.amountCheck).toEqual({
       crop: 'paddy',
@@ -129,6 +142,43 @@ describe('crop amount limits', () => {
     // Farmers never see the amount check
     const own = await request(app).get(`/api/claims/${claim._id}`).set(authHeader(farmer));
     expect(own.body.amountCheck).toBeUndefined();
+  });
+
+  test('raising a limit is recorded in the history, and a rejected change leaves the old limit', async () => {
+    const adminA = await createStaff('admin', { name: 'Admin A' });
+    const adminB = await createStaff('admin', { name: 'Admin B' });
+    const officer = await createStaff('officer');
+
+    const { _id: id } = (await propose(adminA, { crop: 'Paddy', maxPerAcre: 15000 })).body.limit;
+    await decide(adminB, id, 'approve');
+
+    // Admin A tries to raise it for a friend; Admin B rejects
+    await propose(adminA, { crop: 'Paddy', maxPerAcre: 20000 });
+    const rejected = await decide(adminB, id, 'reject');
+    expect(rejected.body.limit.maxPerAcre).toBe(15000);
+
+    const { body } = await request(app).get('/api/crop-limits/history').set(authHeader(officer));
+    expect(body.history.map((h) => [h.action, h.oldValue, h.newValue, h.byName])).toEqual([
+      ['rejected', 15000, 20000, 'Admin B'],
+      ['proposed', 15000, 20000, 'Admin A'],
+      ['approved', null, 15000, 'Admin B'],
+      ['proposed', null, 15000, 'Admin A'],
+    ]);
+  });
+
+  test('removing a limit also needs a second admin; the proposer can cancel their own proposal', async () => {
+    const adminA = await createStaff('admin');
+    const adminB = await createStaff('admin');
+    const { _id: id } = (await propose(adminA, { crop: 'Wheat', maxPerAcre: 12000 })).body.limit;
+    await decide(adminB, id, 'approve');
+
+    await propose(adminA, { crop: 'Wheat', remove: true });
+    expect((await decide(adminA, id, 'reject')).body.limit.maxPerAcre).toBe(12000); // cancelled
+
+    await propose(adminB, { crop: 'Wheat', remove: true });
+    expect((await decide(adminA, id, 'approve')).body.limit).toBeNull();
+    const list = await request(app).get('/api/crop-limits').set(authHeader(adminA));
+    expect(list.body.limits).toHaveLength(0);
   });
 
   test('a crop without a limit just shows the per-acre amount', async () => {
