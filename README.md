@@ -28,7 +28,7 @@ A MERN-stack platform where farmers file and track crop-insurance claims, and fi
 | Analytics | Claims per month / status / cause / state, approval rate, average days to decision, amount paid, weather verdicts, officer workload. |
 | Public tracking | Anyone can check a claim's status with the claim number + last 4 digits of the phone number, no login needed. |
 | Hindi | Full Hindi UI with an EN / हिं switch. |
-| AI summary (optional) | Officers can generate a short summary of a claim with Groq (Llama 3.3 70B), falling back to Gemini. Only non-personal facts are sent. |
+| AI summary (optional) | Officers can generate a short summary of a claim with Groq (GPT-OSS 120B), falling back to Gemini. Only non-personal facts are sent. |
 
 ## How it works
 

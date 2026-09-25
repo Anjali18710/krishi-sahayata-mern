@@ -1,5 +1,5 @@
 // Optional: writes a short summary of a claim for the reviewing officer using an LLM.
-// Tries Groq (Llama 3.3 70B) first and falls back to Google Gemini, the same pattern as DocuMind AI.
+// Tries Groq (GPT-OSS 120B; Llama 3.3 70B was retired by Groq in Aug 2026) first and falls back to Google Gemini, the same pattern as DocuMind AI.
 // The summary only helps the officer read faster - it never approves or rejects anything.
 const axios = require('axios');
 const env = require('../config/env');
@@ -62,7 +62,9 @@ async function callGroq(facts) {
     {
       model: env.ai.groqModel,
       temperature: 0.2,
-      max_tokens: 400,
+      // GPT-OSS models "think" before answering; the thinking also uses tokens, so allow room for both
+      max_completion_tokens: 1200,
+      ...(env.ai.groqModel.startsWith('openai/gpt-oss') && { reasoning_effort: 'low' }),
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: facts },
@@ -70,7 +72,9 @@ async function callGroq(facts) {
     },
     { headers: { Authorization: `Bearer ${env.ai.groqApiKey}` }, timeout: 20000 }
   );
-  return { text: data.choices[0].message.content.trim(), provider: 'groq', model: env.ai.groqModel };
+  const text = data.choices?.[0]?.message?.content?.trim();
+  if (!text) throw new Error('Groq returned an empty response');
+  return { text, provider: 'groq', model: env.ai.groqModel };
 }
 
 async function callGemini(facts) {
